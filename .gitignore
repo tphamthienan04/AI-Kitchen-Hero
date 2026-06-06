@@ -48,3 +48,7 @@ pnpm-debug.log*
 .envrc
 .next/
 .vercel/
+
+venv/
+.venv/
+env/

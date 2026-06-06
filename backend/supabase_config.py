@@ -1,6 +1,6 @@
 import os
 import datetime
-from typing import Optional  # <--- THÊM DÒNG NÀY VÀO ĐẦU FILE
+from typing import Optional  
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
