@@ -3,7 +3,11 @@ import json
 import logging
 import datetime
 from typing import List, Optional
-from supabase_config import log_ai_action
+try:
+    from backend.supabase_config import log_ai_action, log_user_activity
+except Exception:
+    def log_ai_action(*args, **kwargs): pass
+    def log_user_activity(*args, **kwargs): pass
 from dotenv import load_dotenv
 import google.generativeai as palm
 
