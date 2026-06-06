@@ -1,7 +1,15 @@
 import type { FridgeItem, Recipe, ScanResult } from '../types'
+import { supabase } from '../lib/supabase'
 
-// New backend integration (FastAPI) 
 const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+async function getHeaders() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return {
+    'Content-Type': 'application/json',
+    ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+  };
+}
 
 // ─── 1. Generate recipes from fridge items via backend ────────────────────
 export async function generateRecipesFromIngredients(
@@ -9,9 +17,10 @@ export async function generateRecipesFromIngredients(
   preferences?: string
 ): Promise<Recipe[]> {
   try {
+    const headers = await getHeaders(); 
     const resp = await fetch(`/api/ai-chef/generate-recipes`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers, 
       body: JSON.stringify({ items, preferences }),
     });
 
@@ -20,41 +29,40 @@ export async function generateRecipesFromIngredients(
     }
 
     const data = await resp.json();
-    console.log("Dữ liệu nhận từ Backend:", data); 
-    
-    
     return data.recipes || []; 
   } catch (error) {
-    console.error("Lỗi gọi API:", error);
+    console.error("Error calling API:", error);
     return []; 
   }
 }
-
+// ─── 2. Parse scanned images via backend ───
 export async function parseScannedImage(
   base64Image: string,
   mimeType: 'image/jpeg' | 'image/png' | 'image/webp',
   scanType: 'fridge' | 'receipt'
 ): Promise<ScanResult> {
   try {
+    const headers = await getHeaders(); 
     const resp = await fetch(`/api/vision/scan`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers, 
       body: JSON.stringify({ image_base64: base64Image, mime_type: mimeType, scan_type: scanType }),
     })
+    
     if (resp.ok) {
       const data = await resp.json()
       return { items: data.items || [], confidence: data.confidence ?? 0 }
     }
-  } catch {
-    // fall back to demo
+  } catch (err) {
+    console.error("Scan error:", err);
   }
-  // Demo fallback
+  
   return {
     items: [{ name: 'Demo Item', category: 'other', quantity: '1', unit: '', emoji: '📦' }],
     confidence: 0.9,
   }
 }
-
+// ─── 3. Demo Data
 export const DEMO_RECIPES: Recipe[] = [
 
   {

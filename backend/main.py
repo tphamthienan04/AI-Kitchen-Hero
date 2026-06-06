@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from openai import OpenAI
-
+from fastapi import FastAPI, Request, HTTPException, Depends
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -77,6 +77,12 @@ except Exception as e:
 
 app = FastAPI(title="Kitchen Hero Backend API")
 
+async def verify_token(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Unauthorized: No valid token provided")
+    return auth_header.split(" ")[1]
+
 # Allow the frontend (Vite) during local development
 app.add_middleware(
     CORSMiddleware,
@@ -122,22 +128,25 @@ async def health():
     return {"status": "ok"}
 
 @app.post("/api/ai-chef/generate-recipes", response_model=RecipesResponse)
-async def generate_recipes(req: GenerateRecipesRequest):
-    log_user_activity("user_id_demo", "GENERATE_RECIPES", {"items_count": len(req.items)})
+async def generate_recipes(req: GenerateRecipesRequest, token: str = Depends(verify_token)):
+    log_user_activity("authenticated_user", "GENERATE_RECIPES", {"items_count": len(req.items)})
     
     ingredients_names = [item["name"] for item in req.items]
     result_text = generate_recipes_with_gemma(ingredients_names)
-    
     try:
+
         data = json.loads(result_text)
-        return data 
+
+        return data
+
     except:
+
         return {"recipes": []}
 
 @app.post("/api/vision/scan", response_model=ScanResult)
-async def vision_scan(req: ScanRequest):
+async def vision_scan(req: ScanRequest, token: str = Depends(verify_token)):
     try:
-        log_user_activity("user_id_demo", "VISION_SCAN", {"scan_type": req.scan_type})
+        log_user_activity("authenticated_user", "VISION_SCAN", {"scan_type": req.scan_type})
         
         if parse_scanned_image is None:
             return {"items": [{"name": "Demo Item", "category": "other", "quantity": "1"}], "confidence": 0.9}

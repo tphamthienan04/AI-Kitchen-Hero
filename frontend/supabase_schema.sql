@@ -57,26 +57,8 @@ create policy "Users can CRUD their own recipes"
 
 create index on recipes (user_id, created_at desc);
 
--- ── 3. Meal Plans ───────────────────────────────────────────────
-create table if not exists meal_plans (
-  id            uuid primary key default gen_random_uuid(),
-  user_id       uuid not null references auth.users(id) on delete cascade,
-  date          date not null,
-  meal_type     text not null check (meal_type in ('breakfast','lunch','dinner','snack')),
-  recipe_id     uuid references recipes(id) on delete set null,
-  recipe_title  text not null,
-  notes         text,
-  unique (user_id, date, meal_type)
-);
 
-alter table meal_plans enable row level security;
-
-create policy "Users can CRUD their own meal plans"
-  on meal_plans for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
-
--- ── 4. User profiles (auto-created on signup) ───────────────────
+-- ── 3. User profiles (auto-created on signup) ───────────────────
 create table if not exists profiles (
   id           uuid primary key references auth.users(id) on delete cascade,
   full_name    text,
@@ -108,7 +90,7 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 
-------------------User activity Log (optional)──────────────────────────────────────────────
+------------------4. User activity Log──────────────────────────────────────────────
 create table if not exists user_activities (
   id           uuid primary key default gen_random_uuid(),
   user_id      uuid not null references auth.users(id) on delete cascade,
