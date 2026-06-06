@@ -60,7 +60,7 @@ def generate_recipes_with_gemma(ingredients):
 
 # Lazy import: switch to Gemini backend client
 try:
-    from gemini_client import (
+    from backend.gemini_client import (
         generate_recipes_from_ingredients,
         parse_scanned_image,
         DEMO_RECIPES
