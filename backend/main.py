@@ -1,14 +1,15 @@
 import os
 import json
 import traceback
-
-
 try:
-    from supabase_config import log_user_activity
+
+    from backend.supabase_config import log_ai_action, log_user_activity
+
 except Exception:
-    
-    def log_user_activity(*args, **kwargs):
-        pass
+
+    def log_ai_action(*args, **kwargs): pass
+
+    def log_user_activity(*args, **kwargs): pass
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
