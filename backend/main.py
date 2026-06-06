@@ -117,7 +117,7 @@ class ScanResult(BaseModel):
     items: List[dict]
     confidence: float
 
-@app.get("/health")
+@app.get("/api/health")
 async def health():
     return {"status": "ok"}
 
