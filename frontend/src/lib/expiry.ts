@@ -1,3 +1,4 @@
+import { FridgeCategory } from '../types'; 
 
 export const getExpirySuggestion = (category: FridgeCategory | 'other'): string => {
   const expiryMap: Record<string, number> = {
