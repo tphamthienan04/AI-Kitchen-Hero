@@ -182,9 +182,9 @@ export default function AIChefPage() {
   return (
     
     <div className="space-y-6 animate-fade-up">
-      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-10 rounded-3xl text-white shadow-lg"> 
-      <h1 className="font-display text-4xl font-bold flex items-center gap-3">
-        <Sparkles size={30} className="text-emerald-200" /> AI Chef
+      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-4 rounded-3xl text-white shadow-lg"> 
+      <h1 className="font-display text-2xl font-bold flex items-center gap-3">
+        <Sparkles size={24} className="text-emerald-200" /> AI Chef
       </h1>
       <p className="text-lg text-emerald-50 mt-3 font-medium">
         Select ingredients and get personalised recipes instantly
@@ -238,16 +238,16 @@ export default function AIChefPage() {
         <button
           onClick={handleGenerate}
           disabled={loading || selectedItems.size === 0}
-          className="btn-magic mt-2 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="btn-magic mt-2 flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
-              <Loader2 size={20} className="animate-spin" />
+              <Loader2 size={18} className="animate-spin" />
               AI is cooking up ideas…
             </>
           ) : (
             <>
-              <Sparkles size={20} />
+              <Sparkles size={18} />
               Generate recipes ({selectedItems.size} items)
             </>
           )}

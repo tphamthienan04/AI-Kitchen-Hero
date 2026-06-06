@@ -48,18 +48,18 @@ export default function FridgePage() {
           <p className="text-xs text-ink-400 mt-0.5">{items.length} items · {expiringCount} expiring soon</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setShowScan(true)}
-            className="btn-primary text-xs"
-          >
-            <Scan size={14} /> Scan
-          </button>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="btn-ghost text-xs"
-          >
-            <Plus size={14} /> Add
-          </button>
+        <button
+          onClick={() => setShowScan(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-full text-sm font-medium hover:bg-emerald-700 transition"
+        >
+          <Scan size={16} /> Scan
+        </button>
+        <button
+          onClick={() => setShowAdd(true)}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-200 text-gray-700 rounded-full text-sm font-medium hover:bg-gray-50 transition"
+        >
+          <Plus size={16} /> Add
+        </button>
         </div>
       </div>
 
