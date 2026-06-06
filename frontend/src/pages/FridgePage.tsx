@@ -11,15 +11,18 @@ function daysUntilExpiry(dateStr?: string): number | null {
   return Math.ceil(diff / 86400000)
 }
 
-const CATEGORIES: { value: FridgeCategory | 'all'; label: string; emoji: string }[] = [
-  { value: 'all',       label: 'All',        emoji: '🍽️' },
-  { value: 'protein',   label: 'Protein',    emoji: '🍗' },
-  { value: 'vegetable', label: 'Veggies',    emoji: '🥦' },
-  { value: 'fruit',     label: 'Fruit',      emoji: '🍎' },
-  { value: 'dairy',     label: 'Dairy',      emoji: '🧀' },
-  { value: 'grain',     label: 'Grains',     emoji: '🌾' },
+const CATEGORIES = [
+  { value: 'all', label: 'All', emoji: '🍽️' }, 
+  { value: 'meat', label: 'Meat', emoji: '🥩' },
+  { value: 'poultry', label: 'Poultry', emoji: '🍗' },
+  { value: 'seafood', label: 'Seafood', emoji: '🐟' },
+  { value: 'vegetable', label: 'Vegetables', emoji: '🥦' },
+  { value: 'fruit', label: 'Fruits', emoji: '🍎' },
+  { value: 'dairy', label: 'Dairy', emoji: '🧀' },
+  { value: 'grain', label: 'Grains', emoji: '🌾' },
   { value: 'condiment', label: 'Condiments', emoji: '🧂' },
-  { value: 'other',     label: 'Other',      emoji: '📦' },
+  { value: 'beverage', label: 'Beverages', emoji: '🥤' },
+  { value: 'other', label: 'Other', emoji: '📦' },
 ]
 
 export default function FridgePage() {

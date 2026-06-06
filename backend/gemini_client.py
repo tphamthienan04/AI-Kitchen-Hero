@@ -77,7 +77,15 @@ async def parse_scanned_image(base64_str: str, mime: str, scan_type: str, user_i
             "data": base64_str
         }
         
-        prompt = f"Identify ingredients from this {scan_type} image. Return strictly JSON with 'items' (name, quantity, unit) and 'confidence'."
+        prompt = f"""Identify ingredients from this {scan_type} image. 
+        Return strictly JSON with 'items' (a list of objects) and 'confidence' (float between 0 and 1).
+        Each object in 'items' MUST include exactly these fields:
+        1. 'name': The name of the item.
+        2. 'quantity': The amount detected.
+        3. 'unit': The unit of measurement (or empty string).
+        4. 'category': MUST be exactly one of: 'meat', 'poultry', 'seafood', 'vegetable', 'dairy', 'fruit', 'grain', 'condiment', 'beverage', 'other'.
+        5. 'emoji': The SINGLE MOST ACCURATE and specific emoji for this exact item (e.g., '🍉' for watermelon, '🐟' for fish, '🍌' for banana, '🥑' for avocado). DO NOT just use generic category emojis.
+        """
         
         resp = model.generate_content([prompt, image_part])
         clean_text = resp.text.strip().replace('```json', '').replace('```', '')

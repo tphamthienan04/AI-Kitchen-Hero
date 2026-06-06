@@ -1,10 +1,14 @@
 import { useState, useRef, useCallback } from 'react'
-import { X, Camera, Upload, RefreshCw, Check, Loader2, Refrigerator, Receipt } from 'lucide-react'
+import { 
+  X, Camera, Upload, RefreshCw, Check, Loader2, 
+  Refrigerator, Receipt, Package, Apple, Milk, 
+  Beef, Carrot, Wine, Fish, Wheat 
+} from 'lucide-react'
 import { parseScannedImage } from '../lib/ai'
 import { useFridge } from '../context/FridgeContext'
 import type { FridgeItem, ScanResult, FridgeCategory } from '../types'
-import { getEmoji } from '../lib/emoji'
 import { getExpirySuggestion } from '../lib/expiry'
+import { getEmoji } from '../lib/emoji'
 
 interface ScanModalProps {
   onClose: () => void
@@ -13,31 +17,45 @@ interface ScanModalProps {
 type ScanType = 'fridge' | 'receipt'
 type Step = 'select-type' | 'capture' | 'reviewing' | 'done'
 
-const EMOJI_MAP: Record<string, string> = {
-  protein: '🍗', vegetable: '🥦', fruit: '🍎',
-  dairy: '🧀', grain: '🌾', condiment: '🧂',
-  beverage: '🥤', other: '📦',
+// 1. Map the string icons from Gemini to professional Lucide React components
+const ICON_MAP: Record<string, React.ElementType> = {
+  apple: Apple,
+  milk: Milk,
+  steak: Beef,
+  carrot: Carrot,
+  box: Package,
+  bottle: Wine,
+  fish: Fish,
+  grain: Wheat,
+  protein: Beef,
+  dairy: Milk,
+  vegetable: Carrot,
+  fruit: Apple,
+  beverage: Wine,
+  condiment: Package,
+  other: Package
 }
 
-// Demo scan result for when AI isn't configured
+// 2. Updated Demo Data to use 'icon' instead of 'emoji'
 const DEMO_FRIDGE_RESULT: ScanResult = {
   confidence: 0.91,
   items: [
-    { name: 'Greek yogurt', category: 'dairy', quantity: '500', unit: 'g', emoji: '🥛' },
-    { name: 'Broccoli', category: 'vegetable', quantity: '1', unit: 'head', emoji: '🥦' },
-    { name: 'Salmon fillet', category: 'protein', quantity: '2', unit: 'pieces', emoji: '🐟' },
-    { name: 'Bell peppers', category: 'vegetable', quantity: '3', unit: '', emoji: '🫑' },
-    { name: 'Sour cream', category: 'dairy', quantity: '200', unit: 'ml', emoji: '🥛' },
+    { name: 'Greek yogurt', category: 'dairy', quantity: '500', unit: 'g', emoji: 'milk' },
+    { name: 'Broccoli', category: 'vegetable', quantity: '1', unit: 'head', emoji: 'carrot' },
+    { name: 'Salmon fillet', category: 'seafood', quantity: '2', unit: 'pieces', emoji: 'fish' },
+    { name: 'Bell peppers', category: 'vegetable', quantity: '3', unit: '', emoji: 'carrot' },
+    { name: 'Sour cream', category: 'dairy', quantity: '200', unit: 'ml', emoji: 'milk' },
   ],
 }
+
 const DEMO_RECEIPT_RESULT: ScanResult = {
   confidence: 0.96,
   items: [
-    { name: 'Pasta', category: 'grain', quantity: '500', unit: 'g', emoji: '🍝' },
-    { name: 'Canned tomatoes', category: 'condiment', quantity: '2', unit: 'cans', emoji: '🍅' },
-    { name: 'Mozzarella', category: 'dairy', quantity: '250', unit: 'g', emoji: '🧀' },
-    { name: 'Basil', category: 'vegetable', quantity: '1', unit: 'bunch', emoji: '🌿' },
-    { name: 'Olive oil', category: 'condiment', quantity: '500', unit: 'ml', emoji: '🫒' },
+    { name: 'Pasta', category: 'grain', quantity: '500', unit: 'g', emoji: 'grain' },
+    { name: 'Canned tomatoes', category: 'condiment', quantity: '2', unit: 'cans', emoji: 'box' },
+    { name: 'Mozzarella', category: 'dairy', quantity: '250', unit: 'g', emoji: 'milk' },
+    { name: 'Basil', category: 'vegetable', quantity: '1', unit: 'bunch', emoji: 'carrot' },
+    { name: 'Olive oil', category: 'condiment', quantity: '500', unit: 'ml', emoji: 'bottle' },
   ],
 }
 
@@ -66,10 +84,9 @@ export default function ScanModal({ onClose }: ScanModalProps) {
         const base64 = dataUrl.split(',')[1]
         const mime = file.type as 'image/jpeg' | 'image/png' | 'image/webp'
         
-        
         const scanResult = await parseScannedImage(base64, mime, scanType!)
         
-        if (scanResult && scanResult.items) {
+        if (scanResult && scanResult.items && scanResult.items.length > 0) {
           setResult(scanResult)
           setSelected(new Set(scanResult.items.map((_, i) => i)))
         } else {
@@ -102,29 +119,31 @@ export default function ScanModal({ onClose }: ScanModalProps) {
   }
 
   const handleAddItems = async () => {
-  if (!result) return;
-  
-  const toAdd = result.items
-    .filter((_, i) => selected.has(i))
-    .map(item => {
-      const category = (item.category || 'other') as FridgeCategory;
-      
-      return {
-        id: crypto.randomUUID(), 
-        name: item.name!,
-        category: category,
-        quantity: String(item.quantity) || '1',
-        unit: item.unit || '',
-        emoji: getEmoji(item.name!, category),
-        added_via: (scanType === 'receipt' ? 'scan_receipt' : 'scan_fridge') as 'scan_receipt' | 'scan_fridge',
+    if (!result) return;
+    
+    const toAdd = result.items
+      .filter((_, i) => selected.has(i))
+      .map(item => {
+        const category = (item.category || 'other') as FridgeCategory;
         
-        expiry_date: getExpirySuggestion(category) 
-      };
-    });
+        return {
+          id: crypto.randomUUID(), 
+          name: item.name!,
+          category: category,
+          quantity: String(item.quantity) || '1',
+          unit: item.unit || '',
+          
+          
+          emoji: item.emoji || getEmoji(item.name!, category), 
+          
+          added_via: (scanType === 'receipt' ? 'scan_receipt' : 'scan_fridge') as 'scan_receipt' | 'scan_fridge',
+          expiry_date: getExpirySuggestion(category) 
+        };
+      });
 
-  await addItems(toAdd);
-  setStep('done');
-};
+    await addItems(toAdd);
+    setStep('done');
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-ink-900/50 backdrop-blur-sm">
@@ -149,7 +168,7 @@ export default function ScanModal({ onClose }: ScanModalProps) {
               <p className="text-sm text-ink-500">What would you like to scan?</p>
               <button
                 onClick={() => { setScanType('fridge'); setStep('capture') }}
-              className="w-full p-4 rounded-2xl border-2 border-surface-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-left flex items-center gap-4 group"
+                className="w-full p-4 rounded-2xl border-2 border-surface-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-left flex items-center gap-4 group"
               >
                 <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
                   <Refrigerator size={22} className="text-emerald-600" />
@@ -161,7 +180,7 @@ export default function ScanModal({ onClose }: ScanModalProps) {
               </button>
               <button
                 onClick={() => { setScanType('receipt'); setStep('capture') }}
-              className="w-full p-4 rounded-2xl border-2 border-surface-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-left flex items-center gap-4 group"
+                className="w-full p-4 rounded-2xl border-2 border-surface-200 hover:border-emerald-300 hover:bg-emerald-50 transition-all text-left flex items-center gap-4 group"
               >
                 <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
                   <Receipt size={22} className="text-emerald-600" />
@@ -192,14 +211,6 @@ export default function ScanModal({ onClose }: ScanModalProps) {
                       : 'Take a photo of your grocery receipt'}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="btn-primary text-xs px-3 py-1.5">
-                    <Camera size={13} /> Camera
-                  </span>
-                  <span className="btn-ghost text-xs px-3 py-1.5">
-                    <Upload size={13} /> Upload
-                  </span>
-                </div>
               </div>
 
               <input
@@ -209,12 +220,6 @@ export default function ScanModal({ onClose }: ScanModalProps) {
                 onChange={handleFileChange}
                 className="hidden"
               />
-
-              <p className="text-xs text-center text-ink-400">
-                💡 {scanType === 'fridge'
-                  ? 'Good lighting and an open fridge gives best results'
-                  : 'Lay receipt flat for clearest scan'}
-              </p>
             </div>
           )}
 
@@ -226,7 +231,6 @@ export default function ScanModal({ onClose }: ScanModalProps) {
                   <img src={preview} alt="Scanned" className="w-full h-full object-cover" />
                   {processing && (
                     <div className="absolute inset-0 bg-ink-900/60 flex flex-col items-center justify-center gap-3">
-                      <div className="scan-overlay absolute inset-0" />
                       <Loader2 size={28} className="text-white animate-spin" />
                       <p className="text-white text-sm font-medium">AI is analysing your {scanType}...</p>
                     </div>
@@ -250,37 +254,57 @@ export default function ScanModal({ onClose }: ScanModalProps) {
                         const allSelected = selected.size === result.items.length
                         setSelected(allSelected ? new Set() : new Set(result.items.map((_, i) => i)))
                       }}
-                    className="text-xs text-emerald-500 font-medium"
+                      className="text-xs text-emerald-500 font-medium"
                     >
                       {selected.size === result.items.length ? 'Deselect all' : 'Select all'}
                     </button>
                   </div>
-                  {error && <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg">{error}</p>}
+                  
+                  {error && <p className="text-xs text-emerald-500 bg-amber-50 px-3 py-2 rounded-lg">{error}</p>}
+                  
                   <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                    {result.items.map((item, i) => (
-                      <label
-                        key={i}
-                        className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
-                          selected.has(i) ? 'border-emerald-200 bg-emerald-50' : 'border-surface-200 bg-white'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selected.has(i)}
-                          onChange={() => toggleItem(i)}
-                          className="w-4 h-4 accent-emerald-500"
-                        />
-                        <span className="text-xl">{item.emoji}</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-ink-900 capitalize">{item.name}</p>
-                          <p className="text-xs text-ink-400">{item.quantity} {item.unit}</p>
-                        </div>
-                        <span className="text-xs text-ink-300 capitalize bg-surface-100 px-2 py-0.5 rounded-full">
-                          {item.category}
-                        </span>
-                      </label>
-                    ))}
+                    {result.items.map((item, i) => {
+                      // 4. Resolve the correct icon component, fallback to Package (box)
+                      const IconComponent = ICON_MAP[item.emoji || item.category || 'box'] || Package;
+
+                      return (
+                        <label
+                          key={i}
+                          className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${
+                            selected.has(i) ? 'border-emerald-200 bg-emerald-50' : 'border-surface-200 bg-white'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected.has(i)}
+                            onChange={() => toggleItem(i)}
+                            className="w-4 h-4 accent-emerald-500"
+                          />
+                          
+                          {/* Render the professional icon here */}
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selected.has(i) ? 'bg-emerald-100 text-emerald-600' : 'bg-surface-100 text-ink-500'}`}>
+                            <IconComponent size={20} />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-ink-900 capitalize">{item.name}</p>
+                            <p className="text-xs text-ink-400">{item.quantity} {item.unit}</p>
+                          </div>
+                          
+                          {/* Show the dynamic expiry calculation directly in the UI as a preview */}
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-[10px] text-ink-400 font-medium bg-surface-100 px-2 py-0.5 rounded-full capitalize">
+                              {item.category}
+                            </span>
+                            <span className="text-[10px] text-emerald-600 font-medium">
+                              {getExpirySuggestion(item.category as FridgeCategory)}
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    })}
                   </div>
+
                   <button
                     onClick={handleAddItems}
                     disabled={selected.size === 0}

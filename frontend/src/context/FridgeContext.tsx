@@ -18,9 +18,9 @@ const FridgeContext = createContext<FridgeContextValue | null>(null)
 const IS_DEMO = !import.meta.env.VITE_SUPABASE_URL
 
 const DEMO_ITEMS: FridgeItem[] = [
-  { id: '1', user_id: 'demo', name: 'Chicken breast',  category: 'protein',    quantity: '400', unit: 'g',    expiry_date: daysFromNow(1),  emoji: '🍗', added_via: 'manual',       created_at: new Date().toISOString() },
-  { id: '2', user_id: 'demo', name: 'Eggs',            category: 'protein',    quantity: '6',   unit: '',     expiry_date: daysFromNow(7),  emoji: '🥚', added_via: 'manual',       created_at: new Date().toISOString() },
-  { id: '3', user_id: 'demo', name: 'Milk',            category: 'dairy',      quantity: '500', unit: 'ml',   expiry_date: daysFromNow(3),  emoji: '🥛', added_via: 'scan_receipt', created_at: new Date().toISOString() },
+  { id: '1', user_id: 'demo', name: 'Chicken breast',  category: 'poultry',   quantity: '400', unit: 'g',    expiry_date: daysFromNow(1),  emoji: '🍗', added_via: 'manual',       created_at: new Date().toISOString() },
+  { id: '2', user_id: 'demo', name: 'Eggs',            category: 'other',     quantity: '6',   unit: '',     expiry_date: daysFromNow(7),  emoji: '🥚', added_via: 'manual',       created_at: new Date().toISOString() },
+  { id: '3', user_id: 'demo', name: 'Milk',            category: 'dairy',      quantity: '500', unit: 'ml',  expiry_date: daysFromNow(3),  emoji: '🥛', added_via: 'scan_receipt', created_at: new Date().toISOString() },
   { id: '4', user_id: 'demo', name: 'Cheddar cheese',  category: 'dairy',      quantity: '200', unit: 'g',    expiry_date: daysFromNow(14), emoji: '🧀', added_via: 'scan_fridge',  created_at: new Date().toISOString() },
   { id: '5', user_id: 'demo', name: 'Tomatoes',        category: 'vegetable',  quantity: '4',   unit: '',     expiry_date: daysFromNow(4),  emoji: '🍅', added_via: 'scan_fridge',  created_at: new Date().toISOString() },
   { id: '6', user_id: 'demo', name: 'Spinach',         category: 'vegetable',  quantity: '150', unit: 'g',    expiry_date: daysFromNow(2),  emoji: '🥬', added_via: 'manual',       created_at: new Date().toISOString() },
@@ -37,7 +37,7 @@ function daysFromNow(days: number): string {
 }
 
 export function FridgeProvider({ children }: { children: ReactNode }) {
-  const { user, isDemoMode } = useAuth(); // 1. Lấy isDemoMode từ AuthContext
+  const { user, isDemoMode } = useAuth(); 
   const [items, setItems] = useState<FridgeItem[]>(isDemoMode ? DEMO_ITEMS : [])
   const [loading, setLoading] = useState(!isDemoMode)
 
@@ -51,7 +51,7 @@ export function FridgeProvider({ children }: { children: ReactNode }) {
   if (user) {
     setLoading(true);
     getFridgeItems(user.id).then(({ data }) => {
-      setItems(data || []); // Dùng data || [] để tránh lỗi undefined
+      setItems(data || []); 
       setLoading(false);
     });
   } else {

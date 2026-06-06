@@ -14,20 +14,22 @@ export interface FridgeItem {
   quantity: string
   unit?: string
   expiry_date?: string
-  emoji: string
+  emoji?: string
   added_via: 'manual' | 'scan_fridge' | 'scan_receipt'
   created_at: string
 }
 
-export type FridgeCategory =
-  | 'protein'
-  | 'vegetable'
-  | 'fruit'
-  | 'dairy'
-  | 'grain'
-  | 'condiment'
-  | 'beverage'
-  | 'other'
+export type FridgeCategory = 
+  | 'meat' 
+  | 'poultry' 
+  | 'seafood' 
+  | 'vegetable' 
+  | 'dairy' 
+  | 'fruit' 
+  | 'grain' 
+  | 'condiment' 
+  | 'beverage' 
+  | 'other';
 
 export interface Recipe {
   id: string

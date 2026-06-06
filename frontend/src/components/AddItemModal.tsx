@@ -2,25 +2,22 @@ import { useState, FormEvent } from 'react'
 import { X } from 'lucide-react'
 import { useFridge } from '../context/FridgeContext'
 import type { FridgeCategory } from '../types'
+import { getEmoji } from '../lib/emoji' 
 
 interface Props { onClose: () => void }
 
 const CATEGORIES: { value: FridgeCategory; label: string; emoji: string }[] = [
-  { value: 'protein',   label: 'Protein',    emoji: '🍗' },
-  { value: 'vegetable', label: 'Vegetable',  emoji: '🥦' },
-  { value: 'fruit',     label: 'Fruit',      emoji: '🍎' },
-  { value: 'dairy',     label: 'Dairy',      emoji: '🧀' },
-  { value: 'grain',     label: 'Grain',      emoji: '🌾' },
-  { value: 'condiment', label: 'Condiment',  emoji: '🧂' },
-  { value: 'beverage',  label: 'Beverage',   emoji: '🥤' },
-  { value: 'other',     label: 'Other',      emoji: '📦' },
+  { value: 'meat',      label: 'Meat',      emoji: '🥩' },
+  { value: 'poultry',   label: 'Poultry',   emoji: '🍗' },
+  { value: 'seafood',   label: 'Seafood',   emoji: '🐟' },
+  { value: 'vegetable', label: 'Vegetable', emoji: '🥦' },
+  { value: 'fruit',     label: 'Fruit',     emoji: '🍎' },
+  { value: 'dairy',     label: 'Dairy',     emoji: '🧀' },
+  { value: 'grain',     label: 'Grain',     emoji: '🌾' },
+  { value: 'condiment', label: 'Condiment', emoji: '🧂' },
+  { value: 'beverage',  label: 'Beverage',  emoji: '🥤' },
+  { value: 'other',     label: 'Other',     emoji: '📦' },
 ]
-
-const EMOJI_MAP: Record<FridgeCategory, string> = {
-  protein: '🍗', vegetable: '🥦', fruit: '🍎',
-  dairy: '🧀', grain: '🌾', condiment: '🧂',
-  beverage: '🥤', other: '📦',
-}
 
 export default function AddItemModal({ onClose }: Props) {
   const { addItem } = useFridge()
@@ -35,15 +32,20 @@ export default function AddItemModal({ onClose }: Props) {
     e.preventDefault()
     if (!name.trim()) return
     setLoading(true)
+    
     await addItem({
       name: name.trim(),
       category,
       quantity,
       unit: unit || undefined,
       expiry_date: expiryDate || undefined,
-      emoji: EMOJI_MAP[category],
+      
+      
+      emoji: getEmoji(name.trim(), category), 
+      
       added_via: 'manual',
     })
+    
     setLoading(false)
     onClose()
   }
@@ -61,12 +63,13 @@ export default function AddItemModal({ onClose }: Props) {
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
             <label className="block text-xs font-medium text-ink-500 mb-1.5">Name *</label>
-            <input className="input" placeholder="e.g. Chicken breast" value={name} onChange={e => setName(e.target.value)} required autoFocus />
+            <input className="input" placeholder="e.g. Salmon fillet" value={name} onChange={e => setName(e.target.value)} required autoFocus />
           </div>
 
           <div>
             <label className="block text-xs font-medium text-ink-500 mb-2">Category</label>
-            <div className="grid grid-cols-4 gap-2">
+            {/* Mình đổi grid-cols-4 thành grid-cols-5 ở desktop để chứa vừa đẹp 10 category */}
+            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.value}
@@ -79,7 +82,7 @@ export default function AddItemModal({ onClose }: Props) {
                   }`}
                 >
                   <div className="text-xl">{cat.emoji}</div>
-                  <div className="text-xs text-ink-600 mt-0.5">{cat.label}</div>
+                  <div className="text-[10px] text-ink-600 mt-0.5 leading-tight">{cat.label}</div>
                 </button>
               ))}
             </div>
