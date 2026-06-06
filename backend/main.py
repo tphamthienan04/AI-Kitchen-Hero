@@ -1,21 +1,25 @@
+import os
+import json
+import traceback
+
+
 try:
     from supabase_config import log_user_activity
-    log_user_activity()
 except Exception:
-    pass
+    
+    def log_user_activity(*args, **kwargs):
+        pass
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from openai import OpenAI
-import os
-import json
-import traceback
 
-# Khởi tạo client kết nối tới OpenRouter
+
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPENROUTER_API_KEY"), # Lấy từ file .env
+    api_key=os.getenv("OPENROUTER_API_KEY"),
 )
 
 def generate_recipes_with_gemma(ingredients):
@@ -53,6 +57,7 @@ def generate_recipes_with_gemma(ingredients):
         return completion.choices[0].message.content
     except Exception as e:
         return f"Error: {str(e)}"
+
 # Lazy import: switch to Gemini backend client
 try:
     from gemini_client import (
@@ -62,8 +67,6 @@ try:
     )
 except Exception:
     # Fallback dummy implementations will be provided below if imports fail
-    
-    
     generate_recipes_from_ingredients = None  # type: ignore
     parse_scanned_image = None  # type: ignore
     DEMO_RECIPES = []  # type: ignore
@@ -140,4 +143,4 @@ async def vision_scan(req: ScanRequest):
     except Exception as e:
         print(f"Detailed fault is: {str(e)}")
         print(traceback.format_exc())
-        raise 
+        raise
