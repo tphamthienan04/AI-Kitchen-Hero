@@ -1,7 +1,7 @@
 import type { FridgeItem, Recipe, ScanResult } from '../types'
 
-// New backend integration (FastAPI) — calls moved to backend at port 8000
-const BACKEND_BASE = 'http://localhost:8000'
+// New backend integration (FastAPI) 
+const BACKEND_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // ─── 1. Generate recipes from fridge items via backend ────────────────────
 export async function generateRecipesFromIngredients(
@@ -9,7 +9,7 @@ export async function generateRecipesFromIngredients(
   preferences?: string
 ): Promise<Recipe[]> {
   try {
-    const resp = await fetch(`${BACKEND_BASE}/api/ai-chef/generate-recipes`, {
+    const resp = await fetch(`/api/ai-chef/generate-recipes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items, preferences }),
@@ -36,7 +36,7 @@ export async function parseScannedImage(
   scanType: 'fridge' | 'receipt'
 ): Promise<ScanResult> {
   try {
-    const resp = await fetch(`${BACKEND_BASE}/api/vision/scan`, {
+    const resp = await fetch(`/api/vision/scan`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image_base64: base64Image, mime_type: mimeType, scan_type: scanType }),

@@ -206,7 +206,6 @@ export default function ScanModal({ onClose }: ScanModalProps) {
                 ref={fileRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={handleFileChange}
                 className="hidden"
               />
