@@ -65,11 +65,15 @@ try:
         parse_scanned_image,
         DEMO_RECIPES
     )
-except Exception:
-    # Fallback dummy implementations will be provided below if imports fail
-    generate_recipes_from_ingredients = None  # type: ignore
-    parse_scanned_image = None  # type: ignore
-    DEMO_RECIPES = []  # type: ignore
+except Exception as e:
+    import traceback
+    print(f"Error importing Gemini client: {str(e)}")
+    print(traceback.format_exc())
+    
+    generate_recipes_from_ingredients = None  
+    parse_scanned_image = None  
+    DEMO_RECIPES = []
+
 
 app = FastAPI(title="Kitchen Hero Backend API")
 
