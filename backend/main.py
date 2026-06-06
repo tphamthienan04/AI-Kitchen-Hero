@@ -10,6 +10,7 @@ from typing import List, Optional
 from openai import OpenAI
 import os
 import json
+import traceback
 
 # Khởi tạo client kết nối tới OpenRouter
 client = OpenAI(
@@ -128,10 +129,15 @@ async def generate_recipes(req: GenerateRecipesRequest):
 
 @app.post("/api/vision/scan", response_model=ScanResult)
 async def vision_scan(req: ScanRequest):
-    log_user_activity("user_id_demo", "VISION_SCAN", {"scan_type": req.scan_type})
-    
-    if parse_scanned_image is None:
-        return {"items": [{"name": "Demo Item", "category": "other", "quantity": "1"}], "confidence": 0.9}
+    try:
+        log_user_activity("user_id_demo", "VISION_SCAN", {"scan_type": req.scan_type})
         
-    result = await parse_scanned_image(req.image_base64, req.mime_type, req.scan_type)
-    return result
+        if parse_scanned_image is None:
+            return {"items": [{"name": "Demo Item", "category": "other", "quantity": "1"}], "confidence": 0.9}
+            
+        result = await parse_scanned_image(req.image_base64, req.mime_type, req.scan_type)
+        return result
+    except Exception as e:
+        print(f"Detailed fault is: {str(e)}")
+        print(traceback.format_exc())
+        raise 
