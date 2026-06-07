@@ -164,10 +164,19 @@ class FridgeItemBase(BaseModel):
 @app.post("/api/fridge/add")
 async def add_fridge_item(item: FridgeItemBase, token: str = Depends(verify_token)):
     try:        
-        supabase.auth.set_session(access_token=token, refresh_token="")        
-        data, count = supabase.table('fridge_items').insert(item.model_dump()).execute()
+        user = supabase.auth.get_user(token)
+        user_id = user.user.id
+        
+        item_data = item.model_dump()
+        item_data['user_id'] = user_id 
+        
+        supabase.postgrest.auth(token)
+        
+        data = supabase.table('fridge_items').insert(item_data).execute()
+        
         log_user_activity("authenticated_user", "ADD_MANUAL_ITEM", {"item_name": item.name})
+        
         return {"status": "success", "data": data}
     except Exception as e:
         print(f"Failed to save to DB: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to save item to database")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
