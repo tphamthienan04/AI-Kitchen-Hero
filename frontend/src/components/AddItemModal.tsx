@@ -30,55 +30,30 @@ export default function AddItemModal({ onClose }: Props) {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
-  e.preventDefault()
-  if (!name.trim()) return
-  setLoading(true)
+    e.preventDefault()
+    if (!name.trim()) return
+    setLoading(true)
+    
+    try {
+      const payload = {
+        name: name.trim(),
+        category,
+        quantity,
+        unit: unit || undefined,
+        expiry_date: expiryDate || undefined,
+        emoji: getEmoji(name.trim(), category), 
+        added_via: 'manual' as const,
+      }
   
-  try {
-    const { data: { session } } = await supabase.auth.getSession()
-    const token = session?.access_token
-
-    if (!token) {
-      alert("You must be logged in to add items.")
+      await addItem(payload)
+      onClose()
+    } catch (error) {
+      console.error("Failed to save item:", error)
+      alert("Failed to save item.")
+    } finally {
       setLoading(false)
-      return
     }
-
-   
-    const payload = {
-      name: name.trim(),
-      category,
-      quantity,
-      unit: unit || undefined,
-      expiry_date: expiryDate || undefined,
-      emoji: getEmoji(name.trim(), category), 
-      added_via: 'manual' as const,
-    }
-
-    
-    const response = await fetch('/api/fridge/add', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      },
-      body: JSON.stringify(payload)
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to save data to Backend")
-    }
-
-    await addItem(payload)
-    
-    onClose()
-  } catch (error) {
-    console.error("Failed to save item:", error)
-    alert("Failed to save item.")
-  } finally {
-    setLoading(false)
   }
-}
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-ink-900/50 backdrop-blur-sm">
       <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-fade-up">

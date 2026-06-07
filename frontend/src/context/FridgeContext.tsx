@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useAuth } from './AuthContext'
-import { getFridgeItems, addFridgeItem, deleteFridgeItem, updateFridgeItem } from '../lib/supabase'
+import { getFridgeItems, addFridgeItem, deleteFridgeItem, updateFridgeItem, supabase } from '../lib/supabase'
 import type { FridgeItem, FridgeCategory } from '../types'
 
 interface FridgeContextValue {
@@ -61,26 +61,36 @@ export function FridgeProvider({ children }: { children: ReactNode }) {
 }, [user, isDemoMode]);
 
   const addItem = async (item: Omit<FridgeItem, 'id' | 'user_id' | 'created_at'>) => {
-    
     const userId = user?.id || 'demo-user';
-    
     const newItem: FridgeItem = {
       ...item,
       id: crypto.randomUUID(),
       user_id: userId,
       created_at: new Date().toISOString(),
     }
-
-    
     if (!isDemoMode && user) {
-      const { data, error } = await addFridgeItem({ ...item, user_id: user.id })
-      if (!error && data) { 
-        setItems(prev => [data as FridgeItem, ...prev]); 
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
+
+      const response = await fetch('/api/fridge/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify(item)
+      })
+
+      if (response.ok) {
+        setItems(prev => [newItem, ...prev]); 
         return; 
+      } else {
+        console.error("Failed to route through Python Backend");
       }
     }
     
-    
+    // Fallback cho Demo mode
     setItems(prev => [newItem, ...prev])
   }
 
