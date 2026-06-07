@@ -5,3 +5,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from backend.main import app
+
+@app.get("/api/health")
+async def health_api():
+    return {"status": "ok"}

@@ -6,17 +6,21 @@ try:
 except Exception:
     def log_ai_action(*args, **kwargs): pass
     def log_user_activity(*args, **kwargs): pass
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 from openai import OpenAI
-from fastapi import FastAPI, Request, HTTPException, Depends
+from backend.auth import verify_token
+from supabase import create_client, Client
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY"),
 )
+SUPABASE_URL = os.environ.get("VITE_SUPABASE_URL", "")
+SUPABASE_KEY = os.environ.get("VITE_SUPABASE_ANON_KEY", "")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def generate_recipes_with_gemma(ingredients):
     system_prompt = """You are a professional chef. Suggest 3 recipes based on the ingredients provided.
@@ -72,12 +76,6 @@ except Exception as e:
 
 
 app = FastAPI(title="Kitchen Hero Backend API")
-
-async def verify_token(request: Request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Unauthorized: No valid token provided")
-    return auth_header.split(" ")[1]
 
 # Allow the frontend (Vite) during local development
 app.add_middleware(
@@ -166,19 +164,9 @@ class FridgeItemBase(BaseModel):
 @app.post("/api/fridge/add")
 async def add_fridge_item(item: FridgeItemBase, token: str = Depends(verify_token)):
     try:        
-        from supabase import create_client, Client
-        import os
-        
-        url: str = os.environ.get("VITE_SUPABASE_URL", "")
-        key: str = os.environ.get("VITE_SUPABASE_ANON_KEY", "")
-        supabase: Client = create_client(url, key)
-        
-        supabase.auth.set_session(access_token=token, refresh_token="")
-        
+        supabase.auth.set_session(access_token=token, refresh_token="")        
         data, count = supabase.table('fridge_items').insert(item.model_dump()).execute()
-        
         log_user_activity("authenticated_user", "ADD_MANUAL_ITEM", {"item_name": item.name})
-        
         return {"status": "success", "data": data}
     except Exception as e:
         print(f"Failed to save to DB: {str(e)}")

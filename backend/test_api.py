@@ -1,31 +1,24 @@
-import json
 import urllib.request
-import urllib.error
+import json
 
-def post_json(url, payload):
+BASE_URL = "https://ai-kitchen-hero.vercel.app" 
+
+def test_api():
+    try:
+        with urllib.request.urlopen(f"{BASE_URL}/api/health") as resp:
+            print("Health Check:", resp.read().decode())
+    except Exception as e:
+        print("Health Check Missing:", e)
+
+    payload = {"name": "Test Item", "category": "other", "quantity": "1"}
     data = json.dumps(payload).encode('utf-8')
-    req = urllib.request.Request(url, data=data, headers={'Content-Type':'application/json'})
-    with urllib.request.urlopen(req) as resp:
-        return resp.read().decode('utf-8')
-
-def main():
+    
     try:
-        health = urllib.request.urlopen('http://localhost:8000/health').read().decode('utf-8')
-        print('health:', health)
+        req = urllib.request.Request(f"{BASE_URL}/api/fridge/add", data=data, 
+                                     headers={'Content-Type':'application/json'})
+        urllib.request.urlopen(req)
     except Exception as e:
-        print('health error', e)
+        print("Test no token, expect 403:", e)
 
-    payload = {
-        'items': [
-            {'name': 'Tomato', 'quantity': '2', 'unit': 'pcs', 'category': 'vegetable'}
-        ],
-        'preferences': 'vegan'
-    }
-    try:
-        resp = post_json('http://localhost:8000/api/ai-chef/generate-recipes', payload)
-        print('generate-recipes response:', resp)
-    except Exception as e:
-        print('generate-recipes error', e)
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    test_api()
