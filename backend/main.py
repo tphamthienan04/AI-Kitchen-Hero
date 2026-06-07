@@ -2,15 +2,10 @@ import os
 import json
 import traceback
 try:
-
     from backend.supabase_config import log_ai_action, log_user_activity
-
 except Exception:
-
     def log_ai_action(*args, **kwargs): pass
-
     def log_user_activity(*args, **kwargs): pass
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -158,3 +153,33 @@ async def vision_scan(req: ScanRequest, token: str = Depends(verify_token)):
         print(f"Detailed fault is: {str(e)}")
         print(traceback.format_exc())
         raise
+
+class FridgeItemBase(BaseModel):
+    name: str
+    category: str
+    quantity: str
+    unit: Optional[str] = None
+    expiry_date: Optional[str] = None
+    emoji: Optional[str] = None
+    added_via: str = "manual" as const
+
+@app.post("/api/fridge/add")
+async def add_fridge_item(item: FridgeItemBase, token: str = Depends(verify_token)):
+    try:        
+        from supabase import create_client, Client
+        import os
+        
+        url: str = os.environ.get("VITE_SUPABASE_URL", "")
+        key: str = os.environ.get("VITE_SUPABASE_ANON_KEY", "")
+        supabase: Client = create_client(url, key)
+        
+        supabase.auth.set_session(access_token=token, refresh_token="")
+        
+        data, count = supabase.table('fridge_items').insert(item.model_dump()).execute()
+        
+        log_user_activity("authenticated_user", "ADD_MANUAL_ITEM", {"item_name": item.name})
+        
+        return {"status": "success", "data": data}
+    except Exception as e:
+        print(f"Failed to save to DB: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save item to database")
