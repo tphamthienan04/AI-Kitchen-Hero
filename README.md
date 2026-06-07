@@ -7,7 +7,7 @@ This repository houses both the frontend and backend components for the AI Kitch
 - Frontend: React + TypeScript + Vite + Tailwind CSS. Consumes the backend API whose base URL is configured in production via environment variables.
 - Backend: FastAPI Python app coordinating with Supabase for data storage, user auth, and data orchestration; integrates AI services for recipe generation and vision processing.
 - Database: Supabase (PostgreSQL) with Row-Level Security. The backend handles data operations; the frontend never talks to Supabase directly in production.
-- AI integrations: OpenRouter Gemini (Gemma 4 31B) for recipe generation; Google Gemini Vision for vision tasks. Claude/Anthropic is not used in this setup.
+- AI integrations: OpenRouter Gemini (Gemma 4 31B) for recipe generation; Google Gemini Vision for vision tasks. 
 - Deployment: Vercel monorepo deployment with a single root vercel.json routing API and frontend assets.
 
 ## Tech Stack
