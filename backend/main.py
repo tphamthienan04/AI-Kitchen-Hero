@@ -161,7 +161,7 @@ class FridgeItemBase(BaseModel):
     unit: Optional[str] = None
     expiry_date: Optional[str] = None
     emoji: Optional[str] = None
-    added_via: str = "manual" as const
+    added_via: str = "manual"
 
 @app.post("/api/fridge/add")
 async def add_fridge_item(item: FridgeItemBase, token: str = Depends(verify_token)):
