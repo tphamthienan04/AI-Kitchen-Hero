@@ -9,6 +9,7 @@ import { useFridge } from '../context/FridgeContext'
 import type { FridgeItem, ScanResult, FridgeCategory } from '../types'
 import { getExpirySuggestion } from '../lib/expiry'
 import { getEmoji } from '../lib/emoji'
+import imageCompression from 'browser-image-compression';
 
 interface ScanModalProps {
   onClose: () => void
@@ -74,35 +75,57 @@ export default function ScanModal({ onClose }: ScanModalProps) {
     setProcessing(true)
     setError('')
 
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string
-      setPreview(dataUrl)
-      setStep('reviewing')
+    try {
+      
+      console.log(`Original size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+      
+      const options = {
+        maxSizeMB: 0.5,         
+        maxWidthOrHeight: 1024, 
+        useWebWorker: true,     
+      };
 
-      try {
-        const base64 = dataUrl.split(',')[1]
-        const mime = file.type as 'image/jpeg' | 'image/png' | 'image/webp'
-        
-        const scanResult = await parseScannedImage(base64, mime, scanType!)
-        
-        if (scanResult && scanResult.items && scanResult.items.length > 0) {
-          setResult(scanResult)
-          setSelected(new Set(scanResult.items.map((_, i) => i)))
-        } else {
-          throw new Error("No items found")
+      
+      const compressedFile = await imageCompression(file, options);
+      console.log(`Compressed size: ${(compressedFile.size / 1024 / 1024).toFixed(2)} MB`);
+      // -------------------------------
+
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const dataUrl = e.target?.result as string
+        setPreview(dataUrl) 
+        setStep('reviewing')
+
+        try {
+          const base64 = dataUrl.split(',')[1]
+          const mime = compressedFile.type as 'image/jpeg' | 'image/png' | 'image/webp'
+          
+          const scanResult = await parseScannedImage(base64, mime, scanType!)
+          
+          if (scanResult && scanResult.items && scanResult.items.length > 0) {
+            setResult(scanResult)
+            setSelected(new Set(scanResult.items.map((_, i) => i)))
+          } else {
+            throw new Error("No items found")
+          }
+        } catch (err) {
+          console.error("Scan error:", err)
+          setError('Failed to analyze image. Please try again.')
+          
+          const demo = scanType === 'receipt' ? DEMO_RECEIPT_RESULT : DEMO_FRIDGE_RESULT
+          setResult(demo)
+          setSelected(new Set(demo.items.map((_, i) => i)))
         }
-      } catch (err) {
-        console.error("Scan error:", err)
-        setError('Failed to analyze image. Please try again.')
-        
-        const demo = scanType === 'receipt' ? DEMO_RECEIPT_RESULT : DEMO_FRIDGE_RESULT
-        setResult(demo)
-        setSelected(new Set(demo.items.map((_, i) => i)))
+        setProcessing(false)
       }
-      setProcessing(false)
+      
+      reader.readAsDataURL(compressedFile) 
+
+    } catch (compressionError) {
+      console.error("Error compressing image:", compressionError);
+      setError('Failed to process image. Please try a different photo.');
+      setProcessing(false);
     }
-    reader.readAsDataURL(file)
   }, [scanType])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
