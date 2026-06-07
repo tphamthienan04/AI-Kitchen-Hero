@@ -105,7 +105,6 @@ create policy "Users can read their own activities"
   on user_activities for select
   using (auth.uid() = user_id);
 
--- Chỉ cho phép insert (không cho sửa/xóa log)
 create policy "Users can insert their own activities"
   on user_activities for insert
   with check (auth.uid() = user_id);
