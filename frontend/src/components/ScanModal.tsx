@@ -142,31 +142,29 @@ export default function ScanModal({ onClose }: ScanModalProps) {
   }
 
   const handleAddItems = async () => {
-    if (!result) return;
-    
-    const toAdd = result.items
-      .filter((_, i) => selected.has(i))
-      .map(item => {
-        const category = (item.category || 'other') as FridgeCategory;
-        
-        return {
-          id: crypto.randomUUID(), 
-          name: item.name!,
-          category: category,
-          quantity: String(item.quantity) || '1',
-          unit: item.unit || '',
-          
-          
-          emoji: item.emoji || getEmoji(item.name!, category), 
-          
-          added_via: (scanType === 'receipt' ? 'scan_receipt' : 'scan_fridge') as 'scan_receipt' | 'scan_fridge',
-          expiry_date: getExpirySuggestion(category) 
-        };
-      });
+  if (!result) return;
+  
+  const toAdd = result.items
+    .filter((_, i) => selected.has(i))
+    .map(item => {
+      const category = (item.category || 'other') as FridgeCategory;
+      const finalEmoji = getEmoji(item.name!, category); 
 
-    await addItems(toAdd);
-    setStep('done');
-  };
+      return {
+        id: crypto.randomUUID(), 
+        name: item.name!,
+        category: category,
+        quantity: String(item.quantity) || '1',
+        unit: item.unit || '',
+        emoji: finalEmoji, 
+        added_via: (scanType === 'receipt' ? 'scan_receipt' : 'scan_fridge') as "scan_receipt" | "scan_fridge",
+        expiry_date: getExpirySuggestion(category) 
+      };
+    });
+
+  await addItems(toAdd);
+  setStep('done');
+};
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-ink-900/50 backdrop-blur-sm">
